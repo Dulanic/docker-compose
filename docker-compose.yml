@@ -1,7 +1,15 @@
 version: "3.4"
 services:
-  ps5:
-    image: dulanic/ps5_stock
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/localtime:/etc/localtime:ro
+    command: --interval 30 --cleanup --rolling-restart
+    ports:
+      - 8086:8080
+    restart: unless-stopped
   overseerr:
     image: sctx/overseerr:latest
     container_name: overseerr
@@ -31,9 +39,10 @@ services:
     volumes:
       - ./mongodb-bi-connector:/var/log
 
+
   mongoclient:
     container_name: mongoclient
-    image: mongoclient/mongoclient
+    image: mongoclient/mongoclient:latest
     env_file:
       - ./envs/mongobi.env
     restart: always
@@ -69,7 +78,7 @@ services:
     restart: unless-stopped
 
   swag:
-    image: ghcr.io/linuxserver/swag
+    image: ghcr.io/linuxserver/swag:latest
     container_name: swag
     cap_add:
       - NET_ADMIN
@@ -110,11 +119,12 @@ services:
       - 27017:27017
     volumes:
       - ./mongodb/database:/data/db
+      - ./mongodb/configdb:/data/configdb
     user: '1000:1000'
     restart: unless-stopped    
 
   collabora:
-    image: collabora/code
+    image: collabora/code:latest
     container_name: collabora
     env_file:
       - ./envs/main.env
@@ -130,7 +140,7 @@ services:
 
   mariadb:
     container_name: mariadb
-    image: ghcr.io/linuxserver/mariadb
+    image: ghcr.io/linuxserver/mariadb:latest
     restart: unless-stopped
     volumes:
       - ./mariadb:/config
@@ -163,7 +173,7 @@ services:
     restart: unless-stopped
 
   heimdall:
-    image: ghcr.io/linuxserver/heimdall
+    image: ghcr.io/linuxserver/heimdall:latest
     container_name: heimdall
     env_file:
       - ./envs/main.env
@@ -175,7 +185,7 @@ services:
     restart: unless-stopped
 
   freshrss:
-    image: freshrss/freshrss
+    image: freshrss/freshrss:latest
     container_name: freshrss
     depends_on:
       - database
@@ -200,6 +210,8 @@ services:
     image: wordpress
     container_name: wordpress
     restart: unless-stopped
+    depends_on: 
+      - mariadb
     ports:
       - 8080:80
     env_file:
@@ -213,6 +225,8 @@ services:
     image: wordpress
     container_name: wordpress2
     restart: unless-stopped
+    depends_on: 
+      - mariadb    
     ports:
       - 8081:80
     env_file:
@@ -223,7 +237,7 @@ services:
       - ./envs/upload.ini:/usr/local/etc/php/conf.d/uploads.ini
 
   filebrowser:
-    image: filebrowser/filebrowser
+    image: filebrowser/filebrowser:latest
     user: '1000'
     container_name: filebrowser
     env_file:
@@ -239,7 +253,7 @@ services:
     restart: unless-stopped 
 
   receipes:
-    image: vabene1111/recipes
+    image: vabene1111/recipes:latest
     container_name: recipes
     env_file:
       - ./envs/main.env
@@ -254,7 +268,7 @@ services:
     restart: unless-stopped   
 
   cops:
-    image: ghcr.io/linuxserver/cops
+    image: ghcr.io/linuxserver/cops:latest
     container_name: cops
     env_file:
       - ./envs/main.env
@@ -266,7 +280,7 @@ services:
     restart: unless-stopped
 
   wiki:
-    image: requarks/wiki
+    image: requarks/wiki:latest
     container_name: wiki
     env_file:
       - ./envs/main.env
@@ -281,7 +295,7 @@ services:
     restart: unless-stopped
     
   vscode:
-    image: linuxserver/code-server
+    image: linuxserver/code-server:latest
     container_name: vscode
     env_file:
       - ./envs/main.env
@@ -299,7 +313,7 @@ services:
     restart: unless-stopped
 
   unpackerr:
-    image: golift/unpackerr
+    image: golift/unpackerr:latest
     container_name: unpackerr    
     env_file:
       - ./envs/main.env
@@ -309,7 +323,7 @@ services:
     restart: unless-stopped
 
   duplicati:
-    image: ghcr.io/linuxserver/duplicati
+    image: ghcr.io/linuxserver/duplicati:latest
     hostname: backup.dulanic.com
     container_name: duplicati
     env_file:
@@ -325,13 +339,14 @@ services:
     restart: unless-stopped
     
   wireguard:
-    image: linuxserver/wireguard
+    image: linuxserver/wireguard:latest
     container_name: wireguard
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
     # DO NOT INCLUDE MAIN ENV! PUID/PGID CAUSES WG TO USE TRUE IP AND NOT LOAD WG!!!!!  
-    ports:
+    labels:
+      - com.centurylinklabs.watchtower.enable=false 
     volumes:
       - ./wireguard:/config
     ports:
@@ -344,7 +359,7 @@ services:
     restart: unless-stopped
 
   wireguardserver:
-    image: linuxserver/wireguard
+    image: linuxserver/wireguard:latest
     container_name: wireguardserver
     cap_add:
       - NET_ADMIN
@@ -362,19 +377,23 @@ services:
     restart: unless-stopped
 
   qbittorrent:
-    image: linuxserver/qbittorrent
+    image: linuxserver/qbittorrent:latest
     container_name: qbittorrent
     env_file:
       - ./envs/qbt.env    
+    depends_on: 
+      - wireguard      
+    labels:
+      - com.centurylinklabs.watchtower.enable=false      
     volumes:
       - ./qbittorrent:/config
       - /mnt/btrfs/downloads:/mnt/btrfs/downloads
       - /mnt/btrfs/downloads:/downloads
     restart: unless-stopped
     network_mode: "service:wireguard"
-
+  
   thelounge:
-    image: thelounge/thelounge
+    image: thelounge/thelounge:4.3.0-pre.4-alpine
     container_name: thelounge
     restart: unless-stopped
     ports:
@@ -386,7 +405,7 @@ services:
     restart: unless-stopped
 
   cloudflare-ddns:
-    image: oznu/cloudflare-ddns
+    image: oznu/cloudflare-ddns:latest
     container_name: cf_ddns
     environment:
       - API_KEY=$CF_API_KEY
@@ -394,7 +413,7 @@ services:
     restart: unless-stopped
 
   cf_ddns_acsigning:
-    image: oznu/cloudflare-ddns
+    image: oznu/cloudflare-ddns:latest
     container_name: cf_ddns_acsigning
     environment:
       - API_KEY=$CF_API_KEY
@@ -402,7 +421,7 @@ services:
     restart: unless-stopped    
 
   cf_ddns_lph:
-    image: oznu/cloudflare-ddns
+    image: oznu/cloudflare-ddns:latest
     container_name: cf_ddns_lph
     environment:
       - API_KEY=$CF_API_KEY
@@ -410,7 +429,7 @@ services:
     restart: unless-stopped
 
   pgadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:latest
     container_name: pgadmin
     environment:
       TZ: $TZ
@@ -428,10 +447,12 @@ services:
     restart: unless-stopped
 
   jackett:
-    image: ghcr.io/linuxserver/jackett
+    image: ghcr.io/linuxserver/jackett:latest
     container_name: jackett
     env_file:
       - ./envs/jackett.env
+    depends_on:
+      - wireguard      
     volumes:
       - ./jackett/config:/config
       - /etc/localtime:/etc/localtime
@@ -439,7 +460,7 @@ services:
     restart: unless-stopped
 
   radarr4K:
-    image: linuxserver/radarr
+    image: linuxserver/radarr:latest
     container_name: radarr4K
     volumes:
       - /etc/localtime:/etc/localtime
@@ -447,8 +468,6 @@ services:
       - /mnt:/mnt
     ports:
       - 7879:7878
-    depends_on:
-      - qbittorrent
     environment:
       - TZ=$TZ
       - PGID=$PUID
@@ -456,14 +475,12 @@ services:
     restart: unless-stopped
 
   radarr:
-    image: ghcr.io/linuxserver/radarr
+    image: ghcr.io/linuxserver/radarr:latest
     container_name: radarr
     volumes:
       - /etc/localtime:/etc/localtime
       - ./radarr:/config
       - /mnt/:/mnt
-    depends_on:
-      - qbittorrent
     ports:
       - 7878:7878 
     env_file:
@@ -471,20 +488,18 @@ services:
     restart: unless-stopped
     
   sonarr:
-    image: ghcr.io/linuxserver/sonarr
+    image: ghcr.io/linuxserver/sonarr:latest
     container_name: sonarr
     volumes:
       - /etc/localtime:/etc/localtime
       - ./sonarr:/config
       - /mnt:/mnt
-    depends_on:
-      - qbittorrent
     env_file:
       - ./envs/main.env
     restart: unless-stopped
 
   tautulli:
-    image: ghcr.io/linuxserver/tautulli
+    image: ghcr.io/linuxserver/tautulli:latest
     container_name: tautulli
     volumes:
       - ./tautulli/config:/config
@@ -498,7 +513,7 @@ services:
     restart: unless-stopped
 
   portainer:
-    image: portainer/portainer-ce
+    image: portainer/portainer-ce:alpine
     container_name: portainer
     ports:
       - 9001:9000
@@ -512,7 +527,7 @@ services:
     restart: unless-stopped
 
   plex:
-    image: ghcr.io/linuxserver/plex
+    image: ghcr.io/linuxserver/plex:latest
     container_name: plex
     env_file:
       - ./envs/main.env
@@ -522,13 +537,13 @@ services:
       - /dev/dri
     volumes:
       - ./plex:/config
-      - /mnt/ssd/transcode:/transcode
+      - /mnt/nextcloud/transcode:/transcode
       - /mnt:/mnt
       - /mnt/gd/DVR:/dvr
     restart: unless-stopped
 
   nextcloud:
-    image: ghcr.io/linuxserver/nextcloud
+    image: ghcr.io/linuxserver/nextcloud:latest
     container_name: nextcloud
     env_file:
       - ./envs/main.env
@@ -555,7 +570,7 @@ services:
       - all
   
   database:
-    image: postgres:13
+    image: postgres:13.3
     shm_size: 1gb   
     container_name: postgresql
     env_file:
@@ -569,7 +584,7 @@ services:
     restart: unless-stopped
 
   pghero:
-    image: ankane/pghero
+    image: ankane/pghero:latest
     container_name: pghero
     environment:
       PGHERO_TZ: $TZ
@@ -588,7 +603,8 @@ services:
     depends_on:
       - database     
     volumes:
-      - ./grafana/config:/var/lib/grafana
+      - ./grafana:/var/lib/grafana
+      - ./grafana/log:/var/log/grafana
   
   mosquitto:
     image: eclipse-mosquitto:1.6
