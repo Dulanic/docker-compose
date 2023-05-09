@@ -1,26 +1,6 @@
 ---
 services:
 
-  # autoheal:
-  #   container_name: autoheal
-  #   environment:
-  #     - AUTOHEAL_CONTAINER_LABEL=all
-  #   image: willfarrell/autoheal:1.2.0
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-
-
-  autobrr:
-    container_name: autobrr
-    image: ghcr.io/autobrr/autobrr:latest
-    restart: 'no'
-    env_file:
-      - /home/dulanic/docker/envs/common.env
-    volumes:
-      - /home/dulanic/docker/autobrr:/config
-    ports:
-      - 7474:7474
-
   bitwarden:
     image: vaultwarden/server
     container_name: bitwarden
@@ -33,7 +13,6 @@ services:
       - "3012:3012"
     restart:
         unless-stopped
-
 
 
   caddy:
@@ -87,16 +66,6 @@ services:
     volumes:
       - /home/dulanic/docker/calibre-web:/config
       - /mnt/btrfs/Media/Books:/books
-
-  # ch_server:
-  #   image: clickhouse/clickhouse-server
-  #   container_name: clickhouse
-  #   mem_limit: 4092m
-  #   ports:
-  #     - "8124:8123"
-  #   volumes:
-  #     - ./db:/var/lib/clickhouse
-  #     - /mnt:/mnt
 
   cf_ddns_acsigning:
     container_name: cf_ddns
@@ -163,6 +132,15 @@ services:
     shm_size: "6gb" #optional
     restart: 'no'
 
+  chatgpt:
+    image: chatgpt:latest
+    container_name: chatgpt
+    ports:
+      - "9174:9174"
+    volumes:
+      - /home/dulanic/docker/chatgpt:/app
+  
+
   dmarc-report:
     image: "gutmensch/dmarc-report:1.4.1"
     hostname: dmarc-report
@@ -181,15 +159,13 @@ services:
       - /home/dulanic/docker/envs/common.env
     volumes:
       - ./epic:/usr/app/config
-    image: charlocharlie/epicgames-freegames:latest
+    image:  charlocharlie/epicgames-freegames:bullseye-slim
     ports:
       - 3007:3000
 
   filebrowser:
     container_name: filebrowser
     image: filebrowser/filebrowser:latest
-    # ports:
-    #   - '8086:80'
     restart: 'no'
     volumes:
       - /home/dulanic/docker/filebrowser/database.db:/database.db
@@ -200,15 +176,6 @@ services:
       - /mnt/btrfs/Media:/srv/Media
       - /mnt/btrfs/downloads/torrent:/srv/torrent
 
-  influxdb:
-    image: influxdb:2.6
-    container_name: influxdb
-    restart: always
-    ports:
-      - '8086:8086'
-    volumes:
-      - ./influx/data:/var/lib/influxdb2
-      - ./infux/config:/etc/influxdb2
 
   fireshare:
     container_name: fireshare
@@ -364,49 +331,7 @@ services:
     restart: 'no'
     volumes:
       - /home/dulanic/docker/mariadb:/config
-
-  # mongo:
-  #   command:
-  #     - '--logpath'
-  #     - /var/log/mongo/mongo.log
-  #   container_name: mongo
-  #   env_file:
-  #     - /home/dulanic/docker/envs/common.env
-  #   hostname: mongo
-  #   image: mongo:latest
-  #   ports:
-  #     - '27017:27017'
-  #   restart: 'no'
-  #   user: '1000:1000'
-  #   volumes:
-  #     - /home/dulanic/docker/mongodb/database:/data/db
-  #     - /home/dulanic/docker/mongodb/configdb:/data/configdb
-  #     - /var/log/mongo:/var/log/mongo
-
-  # mongoclient:
-  #   container_name: mongoclient
-  #   env_file:
-  #     - /home/dulanic/docker/envs/mongobi.env
-  #   image: mongoclient/mongoclient:latest
-  #   ports:
-  #     - '3005:3000'
-  #   restart: 'no'
-  #   volumes:
-  #     - /home/dulanic/docker/mongoclient:/data/db  mongoclient/mongoclient
-
-  # mongodb_bi_connector:
-  #   container_name: mongosqld
-  #   env_file:
-  #     - /home/dulanic/docker/envs/mongobi.env
-  #   image: ghcr.io/dulanic/mongodb-bi-connector:latest
-  #   labels:
-  #     - com.centurylinklabs.watchtower.enable="false"
-  #   ports:
-  #     - '3307:3307'
-  #   restart: 'no'
-  #   user: '1000:1000'
-  #   volumes:
-  #     - /home/dulanic/docker/mongodb-bi-connector:/var/log
+    
 
   mosquitto:
     container_name: mosquitto
@@ -430,6 +355,7 @@ services:
     depends_on:
       - caddy
       - collabora    
+      - redis
     ports:
       - '444:443'
     restart: 'no'
@@ -438,18 +364,6 @@ services:
       - /mnt/btrfs/photos/originals:/photos
       - /mnt/nextcloud:/data
       - /dev/dri:/dev/dri
-
-  # nzbget:
-  #   container_name: nzbget
-  #   env_file:
-  #     - /home/dulanic/docker/envs/common.env
-  #   image: lscr.io/linuxserver/nzbget:latest
-  #   ports:
-  #     - '6789:6789'
-  #   restart: 'no'
-  #   volumes:
-  #     - /home/dulanic/docker/nzbget:/config
-  #     - /mnt/btrfs/downloads:/mnt/btrfs/downloads
 
   vscode:
     container_name: vscode
@@ -475,15 +389,6 @@ services:
       - /mnt/btrfs:/mnt/btrfs
       - /home/dulanic/bin/chromedriver:/usr/lib/chromium-browser/chromedriver
       - /home/dulanic/docker/custom/vscode:/config/custom-cont-init.d
-
-  organizr:
-    container_name: organizr
-    env_file:
-      - /home/dulanic/docker/envs/common.env
-    image: ghcr.io/organizr/organizr
-    restart: 'no'
-    volumes:
-      - /home/dulanic/docker/organizr:/config
 
   overseerr:
     container_name: overseerr
@@ -531,19 +436,6 @@ services:
       - /home/dulanic/docker/pgadmin/storage:/var/lib/pgadmin/storage/dulanic_gmail.com
 
 
-  # pghero:
-  #   container_name: pghero
-  #   depends_on:
-  #     postgresql:
-  #       condition: service_healthy
-  #   environment:
-  #     DATABASE_URL: $DB_URL
-  #     PGHERO_TZ: $TZ
-  #   image: ankane/pghero:latest
-  #   restart: 'no'
-  #   volumes:
-  #     - /home/dulanic/docker/pghero/pghero.yml:/app/config/pghero.yml:ro
-
   photoprism:
     container_name: photoprism
     depends_on:
@@ -586,6 +478,7 @@ services:
      - ~/docker/phpmyadmin/config.inc.php:/etc/phpmyadmin/config.inc.php
      - /home/dulanic/docker/phpmyadmin/themes:/var/www/html/themes
      - ~/docker/phpmyadmin/tmp:/tmp
+
   plex:
     container_name: plex
     devices:
@@ -618,7 +511,17 @@ services:
     volumes:
       - /home/dulanic/docker/plexautoskip:/config
 
-  #portainer:
+  # PMM:
+  #   image: meisnate12/plex-meta-manager
+  #   container_name: PMM
+  #   env_file:
+  #     - /home/dulanic/docker/envs/common.env
+  #   user: ${PUID}:${PGID}
+  #   volumes:
+  #     - ./PMM/config:/config
+  #   restart: unless-stopped      
+
+  # portainer:
   #  command: '-H unix:///var/run/docker.sock'
   #  container_name: portainer
   #  env_file:
@@ -761,11 +664,11 @@ services:
     env_file:
       - /home/dulanic/docker/envs/common.env
       - /home/dulanic/docker/envs/readarr.env
-    healthcheck:
-      interval: 1m30s
-      retries: 3
-      test: curl --fail -s $READARR || exit 1
-      timeout: 10s
+    # healthcheck:
+    #   interval: 1m30s
+    #   retries: 3
+    #   test: curl --fail -s $READARR || exit 1
+    #   timeout: 10s
     image: lscr.io/linuxserver/readarr:develop
     ports:
       - '8787:8787'
@@ -812,9 +715,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro # (optional) For docker integrations
 
   redis:
-    image: redis
     container_name: redis
-    restart: 'no'
+    image: redis:alpine
+    volumes:
+      - redisdata:/data
 
 
   redisngx:
@@ -835,39 +739,6 @@ services:
     #   - /home/dulanic/docker/redisngx/redis.conf:/usr/local/etc/redis/redis.conf
     #   - redisngx:/data
 
-  # redis:
-  #   container_name: redis
-  #   healthcheck:
-  #     interval: 10s
-  #     retries: 10
-  #     test:
-  #       - CMD
-  #       - redis-cli
-  #       - ping
-  #     timeout: 45s
-  #   image: redis:6.0
-  #   # ports:
-  #   #  - '6379:6379'
-  #   restart: 'no'
-  #   volumes:
-  #     - /home/dulanic/docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
-  #     - redis:/data
-
-  samba:
-    container_name: samba
-    env_file:
-      - /home/dulanic/docker/envs/samba.env
-    image: dperson/samba
-    ports:
-      - 139:139
-      - 445:445
-    volumes:
-      - /home/dulanic:/home/dulanic
-      - /mnt/btrfs:/mnt/btrfs
-      - /mnt/gmedia:/mnt/gmedia
-      - /mnt/usb-ext:/mnt/usb-ext
-      - /mnt/gd:/mnt/gd
-    restart: 'no'
 
 
   sonarr:
@@ -945,8 +816,7 @@ services:
   #   volumes:
   #     - /home/dulanic/docker/derbynet:/var/lib/derbynet 
   #     - /etc/localtime:/etc/localtime:ro 
-      
-
+ 
   teslamate:
     cap_drop:
       - all
@@ -992,7 +862,6 @@ services:
     restart: 'no'
     security_opt:
       - no-new-privileges:true
-    # user: ${PUID}:${PGID}
     volumes:
       - /mnt/btrfs:/mnt/btrfs
 
@@ -1114,44 +983,37 @@ services:
     network_mode: host
     restart: 'no'
 
+
   ytdl:
     container_name: ytdl
-    env_file:
-      - /home/dulanic/docker/envs/common.env
-    image: nbr23/youtube-dl-server:yt-dlp
-    restart: 'no'
-    user: '1000:1000'
-    volumes:
-      - /home/dulanic/docker/fireshare/fireshare_videos/ytdl:/youtube-dl
-      - /home/dulanic/docker/ytdl/config:/app_config
-
-  deemix:
-    image: registry.gitlab.com/bockiii/deemix-docker
-    container_name: deemix
-    volumes:
-      - /mnt/btrfs/Media/music/:/downloads
-      - /home/dulanic/docker/deemix:/config
     environment:
       - PUID=1000
       - PGID=1000
-      - UMASK_SET=022
-      - DEEMIX_SINGLE_USER=true
-    ports:
-      - 6595:6595
+      - TZ=America/Chicago
+      - YOUTUBE_DL_PATH=/downloads
+      - YOUTUBE_DL_SERVER_PORT=8080
+      - YOUTUBE_DL_SERVER_HOST=ytdl.dulanic.com
+      - youtubedl_webui=true
+    image: jeeaaasustest/youtube-dl
+    restart: 'always'
+    volumes:
+      - /home/dulanic/docker/fireshare/fireshare_videos/ytdl:/youtube-dl
+      - /home/dulanic/docker/youtube-dl/config:/config
+      - /home/dulanic/docker/youtube-dl/downloads:/downloads
 
 
 version: '3.4'
 
 volumes:
 
-  mosquitto-conf: null
+  mosquitto-conf: 
 
-  mosquitto-data: null
+  mosquitto-data: 
 
-  mosquitto-log: null
+  mosquitto-log: 
 
-  redisnc: null
+  redisnc: 
 
-  redisngx: null
+  redisngx: 
 
-  redis: null
+  redisdata:
