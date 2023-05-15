@@ -1,6 +1,6 @@
 ---
+version: "3.4"
 services:
-
   bitwarden:
     image: vaultwarden/server
     container_name: bitwarden
@@ -9,12 +9,9 @@ services:
     volumes:
       - /home/dulanic/docker/bitwarden:/data
     ports:
-      - "8097:80"
-      - "3012:3012"
-    restart:
-        unless-stopped
-
-
+      - 8097:80
+      - 3012:3012
+    restart: unless-stopped
   caddy:
     container_name: caddy
     env_file:
@@ -22,9 +19,9 @@ services:
       - /home/dulanic/docker/envs/caddy.env
     image: ghcr.io/dulanic/caddy:v2.6.2
     ports:
-      - '80:80'
-      - '443:443'
-    restart: 'no'
+      - 80:80
+      - 443:443
+    restart: always
     volumes:
       - /home/dulanic/docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - /home/dulanic/docker/caddy/subsites:/etc/caddy/subsites:ro
@@ -41,32 +38,17 @@ services:
       - /home/dulanic/docker/recipes/media:/media
       - /mnt/btrfs/youtube:/www/ytdl:ro
       - /mnt/btrfs:/mnt/btrfs
-
-  calibre:
-    container_name: calibre
-    env_file:
-      - /home/dulanic/docker/envs/common.env
-    image: lscr.io/linuxserver/calibre:latest
-    ports:
-      - '8080:8080'
-      - '8081:8081'
-    restart: 'no'
-    volumes:
-      - /home/dulanic/docker/calibre:/config
-      - /mnt/btrfs/Media/Books:/books
-
   calibre-web:
     container_name: calibre-web
     env_file:
       - /home/dulanic/docker/envs/common.env
     image: lscr.io/linuxserver/calibre-web:latest
     ports:
-      - '8083:8083'
-    restart: 'no'
+      - 8083:8083
+    restart: always
     volumes:
       - /home/dulanic/docker/calibre-web:/config
       - /mnt/btrfs/Media/Books:/books
-
   cf_ddns_acsigning:
     container_name: cf_ddns
     environment:
@@ -74,8 +56,7 @@ services:
       - ZONE=$DOMAIN
       - SUBDOMAIN=wg
     image: oznu/cloudflare-ddns:latest
-    restart: 'no'
-
+    restart: always
   collabora:
     image: collabora/code
     container_name: collabora
@@ -84,74 +65,68 @@ services:
     environment:
       - extra_params=-o:ssl.enable=false
     cap_add:
-     - MKNOD
-    privileged: true     
+      - MKNOD
+    privileged: true
     ports:
-      - 9980:9980   
+      - 9980:9980
     volumes:
       - /home/dulanic/docker/collabora/coolwsd.xml:/etc/coolwsd/coolwsd.xml
-
   cloudflared:
     command:
       - tunnel
-      - '--no-autoupdate'
-      - '--config'
+      - --no-autoupdate
+      - --config
       - /etc/cloudflared/dulanic.yaml
-      - '--origincert'
+      - --origincert
       - /etc/cloudflared/dulanic.pem
       - run
     container_name: cloudflared
-    image: cloudflare/cloudflared:2023.1.0
-    restart: 'no'
-    user: '1000:1000'
+    image: cloudflare/cloudflared:2023.5.0
+    restart: always
+    user: 1000:1000
     volumes:
       - /home/dulanic/docker/cloudflared:/etc/cloudflared
       - /home/dulanic/docker/cloudflared/cf.log:/cloudflared/cf.log
-
   webtop:
     image: lscr.io/linuxserver/webtop:ubuntu-mate
     container_name: webtop
     security_opt:
-      - seccomp:unconfined #optional
+      - seccomp:unconfined
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=America/Chicago
-      - SUBFOLDER=/ #optional
-      - KEYBOARD=en-us-qwerty #optional
-      - TITLE=Webtop #optional
+      - SUBFOLDER=/
+      - KEYBOARD=en-us-qwerty
+      - TITLE=Webtop
     volumes:
       - ./webtop:/config
       - /mnt/btrfs/photos:/mnt/btrfs/photos
-      - /var/run/docker.sock:/var/run/docker.sock #optional
+      - /var/run/docker.sock:/var/run/docker.sock
       - /home/dulanic/docker/custom/webtop:/custom-cont-init.d:ro
     ports:
       - 3000:3000
     devices:
-      - /dev/dri:/dev/dri #optional
-    shm_size: "6gb" #optional
-    restart: 'no'
-
+      - /dev/dri:/dev/dri
+    shm_size: 6gb
+    restart: always
   chatgpt:
     image: chatgpt:latest
     container_name: chatgpt
     ports:
-      - "9174:9174"
+      - 9174:9174
     volumes:
       - /home/dulanic/docker/chatgpt:/app
-  
-
   dmarc-report:
-    image: "gutmensch/dmarc-report:1.4.1"
+    image: gutmensch/dmarc-report:1.4.1
     hostname: dmarc-report
     container_name: dmarc-report
     depends_on:
       - mariadb
     env_file:
       - /home/dulanic/docker/envs/dmarc.env
-    volumes: 
+    volumes:
       - ./dmarc/logs:/var/log
-
   epic:
     restart: unless-stopped
     container_name: epic
@@ -159,14 +134,13 @@ services:
       - /home/dulanic/docker/envs/common.env
     volumes:
       - ./epic:/usr/app/config
-    image:  charlocharlie/epicgames-freegames:bullseye-slim
+    image: charlocharlie/epicgames-freegames:bullseye-slim
     ports:
       - 3007:3000
-
   filebrowser:
     container_name: filebrowser
     image: filebrowser/filebrowser:latest
-    restart: 'no'
+    restart: always
     volumes:
       - /home/dulanic/docker/filebrowser/database.db:/database.db
       - /home/dulanic/docker/filebrowser/.filebrowser.json:/.filebrowser.json
@@ -175,8 +149,6 @@ services:
       - /mnt/btrfs/NAS:/srv/NAS
       - /mnt/btrfs/Media:/srv/Media
       - /mnt/btrfs/downloads/torrent:/srv/torrent
-
-
   fireshare:
     container_name: fireshare
     env_file:
@@ -184,12 +156,11 @@ services:
       - /home/dulanic/docker/envs/fireshare.env
     image: shaneisrael/fireshare:latest
     ports:
-      - '8091:80'
+      - 8091:80
     volumes:
       - /home/dulanic/docker/fireshare/fireshare_data:/data
       - /home/dulanic/docker/fireshare/fireshare_processed:/processed
       - /home/dulanic/docker/fireshare/fireshare_videos:/videos
-
   flaresolverr:
     container_name: flaresolverr
     environment:
@@ -198,9 +169,8 @@ services:
       - TZ=America/Chicago
     image: ghcr.io/flaresolverr/flaresolverr:latest
     ports:
-      - '8191:8191'
-    restart: 'no'
-
+      - 8191:8191
+    restart: always
   freshrss:
     container_name: freshrss
     depends_on:
@@ -211,13 +181,11 @@ services:
       - /home/dulanic/docker/envs/freshrss.env
     image: freshrss/freshrss:latest
     ports:
-      - '84:80'
-    restart: 'no'
+      - 84:80
+    restart: always
     volumes:
       - /home/dulanic/docker/freshrss/data:/var/www/FreshRSS/data
       - /home/dulanic/docker/freshrss/extensions:/var/www/FreshRSS/extensions
-
-
   grafana:
     container_name: grafana-tesla
     depends_on:
@@ -226,21 +194,19 @@ services:
     env_file:
       - /home/dulanic/docker/envs/grafana.env
     image: ghcr.io/dulanic/grafana:main
-    restart: 'no'
-    user: '1000'
+    restart: always
+    user: "1000"
     volumes:
       - /home/dulanic/docker/grafana:/var/lib/grafana
       - /home/dulanic/docker/grafana/log:/var/log/grafana
-
   heimdall:
     container_name: heimdall
     env_file:
       - /home/dulanic/docker/envs/common.env
     image: lscr.io/linuxserver/heimdall:latest
-    restart: 'no'
+    restart: always
     volumes:
       - /home/dulanic/docker/heimdall:/config
-
   homeassistant:
     container_name: homeassistant
     depends_on:
@@ -254,62 +220,17 @@ services:
       test:
         - CMD
         - curl
-        - '-f'
+        - -f
         - http://192.168.2.155:8123
       timeout: 10s
     image: homeassistant/home-assistant:stable
     ports:
-      - '8123:8123'
-    restart: 'no'
+      - 8123:8123
+    restart: always
     volumes:
       - /home/dulanic/docker/homeassistant:/config
       - /etc/localtime:/etc/localtime:ro
       - /home:/home
-
-
-  # lidarr-extended:
-  #   image: randomninjaatk/lidarr-extended:latest
-  #   container_name: lidarr
-  #   volumes:
-  #     - /home/dulanic/docker/lidarr:/config
-  #     - /path/to/preferred/local/directory:/downloads-lidarr-extended
-  #     - /mnt:/mnt
-  #     - /mnt/btrfs/Media/music:/music
-  #     - /mnt/btrfs/Media/music-videos:/music-videos
-  #   environment:
-  #     - TZ=America/New_York
-  #     - PUID=1000
-  #     - PGID=1000
-  #     - autoStart=true
-  #     - enableAudioScript=true
-  #     - enableVideoScript=true
-  #     - scriptInterval=15m
-  #     - configureLidarrWithOptimalSettings=true
-  #     - searchSort=date
-  #     - audioFormat=native
-  #     - audioBitrate=lossless
-  #     - requireQuality=true
-  #     - enableReplaygainTags=true
-  #     - audioLyricType=both
-  #     - dlClientSource=both
-  #     - arlToken=Token_Goes_Here
-  #     - tidalCountryCode=US
-  #     - addDeezerTopArtists=true
-  #     - addDeezerTopAlbumArtists=true
-  #     - addDeezerTopTrackArtists=true
-  #     - topLimit=10
-  #     - addRelatedArtists=false
-  #     - numberOfRelatedArtistsToAddPerArtist=5
-  #     - addFeaturedVideoArtists=false
-  #     - plexUrl=http://plex:32400
-  #     - youtubeSubtitleLanguage=en
-  #     - enableQueueCleaner=true
-  #     - matchDistance=5
-  #     - TP_ADDON=lidarr-darker
-  #   ports:
-  #     - 8686:8686
-  #   restart: 'no'
-
   mariadb:
     container_name: mariadb
     env_file:
@@ -322,30 +243,27 @@ services:
         - CMD
         - mysqladmin
         - ping
-        - '-h'
+        - -h
         - localhost
       timeout: 45s
     image: lscr.io/linuxserver/mariadb:latest
     ports:
-      - '3306:3306'
-    restart: 'no'
+      - 3306:3306
+    restart: always
     volumes:
       - /home/dulanic/docker/mariadb:/config
-    
-
   mosquitto:
     container_name: mosquitto
     env_file:
       - /home/dulanic/docker/envs/common.env
     image: eclipse-mosquitto:1.6
     ports:
-      - '1883:1883'
-    restart: 'no'
+      - 1883:1883
+    restart: always
     volumes:
       - mosquitto-conf:/mosquitto/config
       - mosquitto-data:/mosquitto/data
       - mosquitto-log:/mosquitto/log
-
   nextcloud:
     container_name: nextcloud
     env_file:
@@ -354,17 +272,16 @@ services:
     image: lscr.io/linuxserver/nextcloud:latest
     depends_on:
       - caddy
-      - collabora    
+      - collabora
       - redis
     ports:
-      - '444:443'
-    restart: 'no'
+      - 444:443
+    restart: always
     volumes:
       - /home/dulanic/docker/nextcloud:/config
       - /mnt/btrfs/photos/originals:/photos
       - /mnt/nextcloud:/data
       - /dev/dri:/dev/dri
-
   vscode:
     container_name: vscode
     env_file:
@@ -377,8 +294,8 @@ services:
       timeout: 10s
     image: lscr.io/linuxserver/openvscode-server:1.63.2
     ports:
-      - '3001:3000'
-    restart: 'no'
+      - 3001:3000
+    restart: always
     volumes:
       - /home/dulanic/docker/openvscode/config:/config
       - /home/dulanic/.ssh:/config/.ssh
@@ -389,18 +306,16 @@ services:
       - /mnt/btrfs:/mnt/btrfs
       - /home/dulanic/bin/chromedriver:/usr/lib/chromium-browser/chromedriver
       - /home/dulanic/docker/custom/vscode:/config/custom-cont-init.d
-
   overseerr:
     container_name: overseerr
     env_file:
       - /home/dulanic/docker/envs/common.env
     image: sctx/overseerr:latest
     ports:
-      - '5055:5055'
-    restart: 'no'
+      - 5055:5055
+    restart: always
     volumes:
       - /home/dulanic/docker/overseerr:/app/config
-
   paperless:
     container_name: paperless
     env_file:
@@ -408,34 +323,30 @@ services:
       - /home/dulanic/docker/envs/paperless.env
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
     ports:
-      - '8000:8000'
-    restart: 'no'
+      - 8000:8000
+    restart: always
     volumes:
       - /home/dulanic/docker/paperless/config:/config
       - /home/dulanic/docker/paperless/data:/data
       - /home/dulanic/docker/paperless/consume:/data/consume
       - /mnt/gd/paperless:/backup
-
   pgadmin:
     container_name: pgadmin
     environment:
-      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: 'False'
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "False"
       PGADMIN_DEFAULT_EMAIL: $USEREMAIL
       PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD
       PGADMIN_LISTEN_PORT: 5050
       TZ: $TZ
     image: dpage/pgadmin4:latest
     ports:
-      - '5050:5050'
-    restart: 'no'
+      - 5050:5050
+    restart: always
     volumes:
       - /home/dulanic/docker/pgadmin/storage:/var/lib/pgadmin
       - /home/dulanic/docker/pgadmin/config_local.py:/pgadmin4/config_local.py
       - /home/dulanic/docker/pgadmin/pgadmin4.log:/var/lib/pgadmin/pgadmin4.log
-      #- /home/dulanic/docker/import:/import
       - /home/dulanic/docker/pgadmin/storage:/var/lib/pgadmin/storage/dulanic_gmail.com
-
-
   photoprism:
     container_name: photoprism
     depends_on:
@@ -453,8 +364,8 @@ services:
       timeout: 10s
     image: photoprism/photoprism:preview
     ports:
-      - '2342:2342'
-    restart: 'no'
+      - 2342:2342
+    restart: always
     security_opt:
       - seccomp:unconfined
       - apparmor:unconfined
@@ -464,21 +375,18 @@ services:
       - /mnt/btrfs/photos/originals:/photoprism/originals
       - /home/dulanic/docker/photoprism/var/lib:/var/lib/photoprism
     working_dir: /photoprism
-
   phpmyadmin:
     container_name: phpmyadmin
     environment:
       - PMA_ARBITRARY=1
     user: ${PUID}:${PGID}
-
     image: phpmyadmin
     restart: always
     volumes:
-     - /sessions
-     - ~/docker/phpmyadmin/config.inc.php:/etc/phpmyadmin/config.inc.php
-     - /home/dulanic/docker/phpmyadmin/themes:/var/www/html/themes
-     - ~/docker/phpmyadmin/tmp:/tmp
-
+      - /sessions
+      - ~/docker/phpmyadmin/config.inc.php:/etc/phpmyadmin/config.inc.php
+      - /home/dulanic/docker/phpmyadmin/themes:/var/www/html/themes
+      - ~/docker/phpmyadmin/tmp:/tmp
   plex:
     container_name: plex
     devices:
@@ -493,12 +401,11 @@ services:
       timeout: 10s
     image: lscr.io/linuxserver/plex:latest
     network_mode: host
-    restart: 'no'
+    restart: always
     volumes:
       - /home/dulanic/docker/plex:/config
       - /mnt/btrfs/transcode:/transcode
       - /mnt:/mnt
-
   plexautoskip:
     container_name: plexautoskip
     depends_on:
@@ -507,38 +414,12 @@ services:
       - /home/dulanic/docker/envs/common.env
       - /home/dulanic/docker/envs/plexautoskip.env
     image: ghcr.io/mdhiggins/plexautoskip-docker
-    restart: 'no'
+    restart: always
     volumes:
       - /home/dulanic/docker/plexautoskip:/config
-
-  # PMM:
-  #   image: meisnate12/plex-meta-manager
-  #   container_name: PMM
-  #   env_file:
-  #     - /home/dulanic/docker/envs/common.env
-  #   user: ${PUID}:${PGID}
-  #   volumes:
-  #     - ./PMM/config:/config
-  #   restart: unless-stopped      
-
-  # portainer:
-  #  command: '-H unix:///var/run/docker.sock'
-  #  container_name: portainer
-  #  env_file:
-  #    - /home/dulanic/docker/envs/common.env
-  #    - /home/dulanic/docker/envs/portainer.env
-  #  image: portainer/portainer-ee:alpine
-  #  ports:
-  #    - '9001:9000'
-  #  restart: 'no'
-  #  volumes:
-  #    - /var/run/docker.sock:/var/run/docker.sock
-  #    - /home/dulanic/docker/portainer:/data
-  #    - /etc/localtime:/etc/localtime
-  #    - /home/dulanic/docker:/home/dulanic/docker
-
   postgresql:
-    command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200
+    command: postgres -c shared_preload_libraries=pg_stat_statements -c
+      pg_stat_statements.track=all -c max_connections=200
     container_name: postgresql
     env_file:
       - /home/dulanic/docker/envs/postgres.env
@@ -550,74 +431,63 @@ services:
       test:
         - CMD
         - pg_isready
-        - '-q'
-        - '-d'
+        - -q
+        - -d
         - ${DB_NAME}
-        - '-U'
+        - -U
         - ${DB_USER}
       timeout: 45s
     image: postgres:15.1-alpine
     ports:
-      - '5432:5432'
-    restart: 'no'
+      - 5432:5432
+    restart: always
     shm_size: 1gb
     volumes:
       - /home/dulanic/docker/postgresql/data:/var/lib/postgresql/data
       - /home/dulanic/docker/import:/import
       - /mnt/btrfs:/mnt/btrfs
       - /home:/home
-
   prowlarr:
     container_name: prowlarr
     env_file:
       - /home/dulanic/docker/envs/common.env
       - /home/dulanic/docker/envs/prowlarr.env
     image: lscr.io/linuxserver/prowlarr:develop
+    depends_on:
+      - qbt
     ports:
-      - '9696:9696'
-    restart: 'no'
+      - 9696:9696
+    restart: always
     volumes:
       - /home/dulanic/docker/prowlarr:/config
-
-  qbittorrent:
-    container_name: qbittorrent
-    depends_on:
-      - wireguard
-    env_file:
-      - /home/dulanic/docker/envs/common.env
-      - /home/dulanic/docker/envs/qbt.env
-    healthcheck:
-      interval: 1m30s
-      retries: 3
-      test: curl --fail -s $QBT || exit 1
-      timeout: 10s
-    image: lscr.io/linuxserver/qbittorrent:4.5.2
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
-    network_mode: service:wireguard
-    restart: 'no'
+  qbt:
+    container_name: qbt
+    image: cr.hotio.dev/hotio/qbittorrent
+    ports:
+      - 8080:8080
+      - 8118:8118
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=America/Chicago
+      - VPN_ENABLED=true
+      - VPN_LAN_NETWORK
+      - VPN_CONF=wg0
+      - VPN_ADDITIONAL_PORTS
+      - PRIVOXY_ENABLED=false
     volumes:
-      - /home/dulanic/docker/qbittorrent:/config
-      - /mnt/btrfs/downloads:/mnt/btrfs/downloads
-      - /mnt/btrfs/Media
-      - /mnt/btrfs/NAS:/mnt/btrfs/NAS
-
-  qbit_manage:
-    container_name: qbit_manage
-    image: bobokun/qbit_manage:develop
-    volumes:
-      - /home/dulanic/docker/qbit_manage/:/config:rw
+      - ./qbt:/config
       - /mnt:/mnt
-    user: ${PUID}:${PGID}
-    env_file:
-      - /home/dulanic/docker/envs/common.env
-      - /home/dulanic/docker/envs/qbit_manage.env
-    restart: 'no'
-
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=1
   radarr:
     container_name: radarr
     depends_on:
-      - qbittorrent
+      - qbt
     env_file:
       - /home/dulanic/docker/envs/common.env
       - /home/dulanic/docker/envs/radarr.env
@@ -628,18 +498,17 @@ services:
       timeout: 10s
     image: lscr.io/linuxserver/radarr:latest
     ports:
-      - '7878:7878'
-    restart: 'no'
+      - 7878:7878
+    restart: always
     volumes:
       - /etc/localtime:/etc/localtime
       - /home/dulanic/docker/radarr:/config
       - /mnt/:/mnt
       - /home/dulanic/docker/scripts/wait-for-mounts.sh:/scripts/wait-for-mounts.sh
-
   radarr4k:
     container_name: radarr4k
     depends_on:
-      - qbittorrent
+      - qbt
     env_file:
       - /home/dulanic/docker/envs/common.env
       - /home/dulanic/docker/envs/radarr4k.env
@@ -650,33 +519,25 @@ services:
       timeout: 10s
     image: lscr.io/linuxserver/radarr:latest
     ports:
-      - '7879:7878'
-    restart: 'no'
+      - 7879:7878
+    restart: always
     volumes:
       - /etc/localtime:/etc/localtime
       - /home/dulanic/docker/radarr4K:/config
       - /mnt:/mnt
       - /mnt/btrfs/downloads:/mnt/btrfs/downloads
-
-
   readarr:
     container_name: readarr
     env_file:
       - /home/dulanic/docker/envs/common.env
       - /home/dulanic/docker/envs/readarr.env
-    # healthcheck:
-    #   interval: 1m30s
-    #   retries: 3
-    #   test: curl --fail -s $READARR || exit 1
-    #   timeout: 10s
     image: lscr.io/linuxserver/readarr:develop
     ports:
-      - '8787:8787'
-    restart: 'no'
+      - 8787:8787
+    restart: always
     volumes:
       - /home/dulanic/docker/readarr:/config
       - /mnt/btrfs/:/mnt/btrfs
-
   receipes:
     container_name: recipes
     depends_on:
@@ -687,12 +548,11 @@ services:
       - /home/dulanic/docker/envs/recipes.env
     image: vabene1111/recipes:latest
     ports:
-      - '8087:8080'
-    restart: 'no'
+      - 8087:8080
+    restart: always
     volumes:
       - /home/dulanic/docker/recipes/static:/opt/recipes/staticfiles
       - /home/dulanic/docker/recipes/media:/opt/recipes/mediafiles
-
   recyclarr:
     container_name: recyclarr
     image: ghcr.io/recyclarr/recyclarr
@@ -701,26 +561,22 @@ services:
     init: true
     volumes:
       - /home/dulanic/docker/recyclarr:/config
-
   homepage:
     image: ghcr.io/benphelps/homepage:latest
     container_name: homepage
     env_file:
-      - /home/dulanic/docker/envs/common.env    
+      - /home/dulanic/docker/envs/common.env
     ports:
       - 3005:3000
     volumes:
-      - ./homepage:/app/config # Make sure your local config directory exists
+      - ./homepage:/app/config
       - /mnt/btrfs:/mnt/btrfs:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro # (optional) For docker integrations
-
+      - /var/run/docker.sock:/var/run/docker.sock:ro
   redis:
     container_name: redis
     image: redis:alpine
     volumes:
       - redisdata:/data
-
-
   redisngx:
     container_name: redisngx
     healthcheck:
@@ -733,18 +589,12 @@ services:
       timeout: 45s
     image: redis:latest
     ports:
-     - '6379:6379'
-    restart: 'no'
-    # volumes:
-    #   - /home/dulanic/docker/redisngx/redis.conf:/usr/local/etc/redis/redis.conf
-    #   - redisngx:/data
-
-
-
+      - 6379:6379
+    restart: always
   sonarr:
     container_name: sonarr
     depends_on:
-      - qbittorrent
+      - qbt
     env_file:
       - /home/dulanic/docker/envs/common.env
       - /home/dulanic/docker/envs/sonarr.env
@@ -755,15 +605,14 @@ services:
       timeout: 10s
     image: lscr.io/linuxserver/sonarr:develop
     ports:
-      - '8989:8989'
-    restart: 'no'
+      - 8989:8989
+    restart: always
     volumes:
       - /etc/localtime:/etc/localtime
       - /home/dulanic/docker/sonarr:/config
       - /mnt:/mnt
       - /mnt/btrfs/downloads:/mnt/btrfs/downloads
       - /home/dulanic/docker/sonarr/logs:/home/dulanic/docker/sonarr/logs
-
   syncthing:
     image: lscr.io/linuxserver/syncthing:latest
     container_name: syncthing
@@ -778,9 +627,7 @@ services:
       - 22000:22000/tcp
       - 22000:22000/udp
       - 21027:21027/udp
-    restart: 'no'
-
-
+    restart: always
   tautulli:
     container_name: tautulli
     depends_on:
@@ -789,12 +636,12 @@ services:
       - /home/dulanic/docker/envs/common.env
     image: lscr.io/linuxserver/tautulli:latest
     ports:
-      - '8181:8181'
-    restart: 'no'
+      - 8181:8181
+    restart: always
     volumes:
       - /home/dulanic/docker/tautulli/config:/config
-      - /home/dulanic/docker/plex/Library/Application Support/Plex Media Server/Logs:/logs
-
+      - /home/dulanic/docker/plex/Library/Application Support/Plex Media
+        Server/Logs:/logs
   teslacamviewer:
     container_name: teslacamviewer
     environment:
@@ -802,21 +649,13 @@ services:
       - PGID=1000
       - TZ=America/Chicago
       - rootFolder=/teslacamdata
-      - authorizationEnabled=false      
+      - authorizationEnabled=false
     image: ghcr.io/rufogongora/teslacamviewer:main
     ports:
-      - '7544:80'
-    restart: 'no'
+      - 7544:80
+    restart: always
     volumes:
       - /mnt/gd/teslausb:/teslacamdata
-
-  # derbynet:
-  #   container_name: derbynet
-  #   image: jeffpiazza/derbynet_server:amd64
-  #   volumes:
-  #     - /home/dulanic/docker/derbynet:/var/lib/derbynet 
-  #     - /etc/localtime:/etc/localtime:ro 
- 
   teslamate:
     cap_drop:
       - all
@@ -826,11 +665,10 @@ services:
         condition: service_healthy
     env_file:
       - /home/dulanic/docker/envs/teslamate.env
-    ports: 
+    ports:
       - 4000:4000
     image: teslamate/teslamate:latest
-    restart: 'no'
-
+    restart: always
   theme-park:
     image: ghcr.io/gilbn/theme.park
     container_name: theme-park
@@ -840,33 +678,31 @@ services:
       - /home/dulanic/docker/themepark:/config
     ports:
       - 8084:80
-    restart: 'no'
-
+    restart: always
   thelounge:
     container_name: thelounge
     env_file:
       - /home/dulanic/docker/envs/common.env
     image: thelounge/thelounge:latest
     ports:
-      - '9013:9000'
-    restart: 'no'
+      - 9013:9000
+    restart: always
     volumes:
       - /home/dulanic/docker/thelounge:/var/opt/thelounge
-
   unpackerr:
     container_name: unpackerr
+    image: cr.hotio.dev/hotio/unpackerr
     env_file:
       - /home/dulanic/docker/envs/common.env
       - /home/dulanic/docker/envs/unpackerr.env
-    image: cr.hotio.dev/hotio/unpackerr
-    restart: 'no'
-    security_opt:
-      - no-new-privileges:true
+    depends_on:
+      - radarr
+      - sonarr
+      - radarr4k
     volumes:
       - /mnt/btrfs:/mnt/btrfs
-
   watchtower:
-    command: '--interval 3600'
+    command: --interval 3600
     container_name: watchtower
     image: containrrr/watchtower
     ports:
@@ -874,7 +710,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/localtime:/etc/localtime:ro
-
   sopel:
     container_name: sopel
     env_file:
@@ -882,8 +717,7 @@ services:
       - /home/dulanic/docker/envs/sopel.env
     image: sopelirc/sopel:latest
     volumes:
-      - /home/dulanic/docker/sopel:/home/sopel/.sopel      
-
+      - /home/dulanic/docker/sopel:/home/sopel/.sopel
   wiki:
     container_name: wiki
     depends_on:
@@ -899,33 +733,11 @@ services:
       timeout: 10s
     image: requarks/wiki:latest
     ports:
-      - '3009:3000'
-    restart: 'no'
+      - 3009:3000
+    restart: always
     volumes:
       - /home/dulanic/docker/wiki:/wiki/data/content
       - /home/dulanic/docker/wiki/backups:/wiki/backups
-
-  wireguard:
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    container_name: wireguard
-    env_file:
-      - /home/dulanic/docker/envs/common.env
-      - /home/dulanic/docker/envs/wireguard.env
-    image: lscr.io/linuxserver/wireguard
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
-    ports:
-      - 6881:6881
-      - 6881:6881/udp
-      - 8089:8089
-    restart: 'no'
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
-    volumes:
-      - /home/dulanic/docker/wireguard:/config
-
   wireguardserver:
     cap_add:
       - NET_ADMIN
@@ -936,13 +748,12 @@ services:
     image: lscr.io/linuxserver/wireguard
     ports:
       - 51820:51820/udp
-    restart: 'no'
+    restart: always
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     volumes:
       - /home/dulanic/docker/wireguardserver:/config
       - /lib/modules:/lib/modules
-
   wordpress:
     container_name: wordpress
     depends_on:
@@ -953,12 +764,11 @@ services:
       - /home/dulanic/docker/envs/wordpress.env
     image: wordpress
     ports:
-      - '91:80'
-    restart: 'no'
+      - 91:80
+    restart: always
     volumes:
       - /home/dulanic/docker/wordpress:/var/www/html
       - /home/dulanic/docker/envs/upload.ini:/usr/local/etc/php/conf.d/uploads.ini
-
   wordpress2:
     container_name: wordpress2
     depends_on:
@@ -969,21 +779,18 @@ services:
       - /home/dulanic/docker/envs/wordpress2.env
     image: wordpress
     ports:
-      - '92:80'
-    restart: 'no'
+      - 92:80
+    restart: always
     volumes:
       - /home/dulanic/docker/wordpress2:/var/www/html
       - /home/dulanic/docker/envs/upload.ini:/usr/local/etc/php/conf.d/uploads.ini
-
   wsdd:
     container_name: wsdd
     environment:
       - HOSTNAME=mediaserver
     image: jonasped/wsdd
     network_mode: host
-    restart: 'no'
-
-
+    restart: always
   ytdl:
     container_name: ytdl
     environment:
@@ -995,25 +802,15 @@ services:
       - YOUTUBE_DL_SERVER_HOST=ytdl.dulanic.com
       - youtubedl_webui=true
     image: jeeaaasustest/youtube-dl
-    restart: 'always'
+    restart: always
     volumes:
       - /home/dulanic/docker/fireshare/fireshare_videos/ytdl:/youtube-dl
       - /home/dulanic/docker/youtube-dl/config:/config
       - /home/dulanic/docker/youtube-dl/downloads:/downloads
-
-
-version: '3.4'
-
 volumes:
-
-  mosquitto-conf: 
-
-  mosquitto-data: 
-
-  mosquitto-log: 
-
-  redisnc: 
-
-  redisngx: 
-
-  redisdata:
+  mosquitto-conf: null
+  mosquitto-data: null
+  mosquitto-log: null
+  redisnc: null
+  redisngx: null
+  redisdata: null
