@@ -446,6 +446,17 @@ services:
     volumes:
       - ./qbt:/config
       - /mnt:/mnt
+  qbt_manage:
+    container_name: qbt_manage
+    image: bobokun/qbit_manage:develop
+    volumes:
+      - /home/dulanic/docker/qbit_manage/:/config:rw
+      - /mnt:/mnt
+    user: ${PUID}:${PGID}
+    env_file:
+      - /home/dulanic/docker/envs/common.env
+      - /home/dulanic/docker/envs/qbit_manage.env
+    restart: 'always'
   radarr:
     container_name: radarr
     depends_on:
